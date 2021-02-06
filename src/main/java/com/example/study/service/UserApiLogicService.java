@@ -14,10 +14,8 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
-public class UserApiLogicService implements CurdInterface<UserApiRequest, UserApiResponse> {
+public class UserApiLogicService extends BaseService<UserApiRequest, UserApiResponse,User> {
 
-    @Autowired
-    private UserRepository userRepository;
 
     @Override
     public Header<UserApiResponse> create(Header<UserApiRequest> request) {
@@ -34,7 +32,7 @@ public class UserApiLogicService implements CurdInterface<UserApiRequest, UserAp
                 .email(userApiRequest.getEmail())
                 .registeredAt(LocalDateTime.now())
                 .build();
-        User newUser= userRepository.save(user);
+        User newUser= baseRepository.save(user);
 
         // 3. 생성된 데이터 ->userApiResponse return
         return response(newUser);
@@ -43,7 +41,7 @@ public class UserApiLogicService implements CurdInterface<UserApiRequest, UserAp
     @Override
     public Header<UserApiResponse> read(Long id) {
         //id -> repository getOne, getById
-        Optional<User> optional = userRepository.findById(id);
+        Optional<User> optional = baseRepository.findById(id);
 
         //user-> userApiResponse return
         return optional
@@ -64,7 +62,7 @@ public class UserApiLogicService implements CurdInterface<UserApiRequest, UserAp
         UserApiRequest userApiRequest = request.getData();
 
         // 2. id->user 데이터를 찾고
-        Optional<User> optional= userRepository.findById(userApiRequest.getId());
+        Optional<User> optional= baseRepository.findById(userApiRequest.getId());
 
         return optional.map(user->{
             // 3. data -> update
@@ -78,7 +76,7 @@ public class UserApiLogicService implements CurdInterface<UserApiRequest, UserAp
             return user;
             // 4. userApiResponse
         })
-                .map(user->userRepository.save(user))
+                .map(user->baseRepository.save(user))
                 .map(updateUser->response(updateUser))
         .orElseGet(()->Header.ERROR("데이터 없음"));
     }
@@ -86,11 +84,11 @@ public class UserApiLogicService implements CurdInterface<UserApiRequest, UserAp
     @Override
     public Header delete(Long id) {
         // 1. id -> repository ->user
-        Optional<User> optional = userRepository.findById(id);
+        Optional<User> optional = baseRepository.findById(id);
 
         // 2. repository ->delete
         return optional.map(user->{
-            userRepository.delete(user);
+            baseRepository.delete(user);
             // 3. response return
             return Header.Ok();
         }).orElseGet(()->Header.ERROR("데이터 없음"));
